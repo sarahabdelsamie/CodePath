@@ -12,17 +12,19 @@ const register = async (req, res) => {
 
     if (error) {
       return res.status(400).json({
+        success: false,
         message: error.details[0].message,
       });
     }
 
-    const { name, email, password } = req.body;
+    const { name, email, password, role, learningPath, skillLevel } = req.body;
 
     const existUser = await User.findOne({ email });
 
     if (existUser) {
       return res.status(400).json({
-        message: "email already exists",
+        success: false,
+        message: "Email already exists",
       });
     }
 
@@ -32,14 +34,30 @@ const register = async (req, res) => {
       name,
       email,
       password: hashPassword,
+      role,
+      learningPath: role === "learner" ? learningPath : undefined,
+      skillLevel: role === "learner" ? skillLevel : undefined,
     });
 
+    const userResponse = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      learningPath: user.learningPath,
+      skillLevel: user.skillLevel,
+      createdAt: user.createdAt,
+    };
+
     res.status(201).json({
-      message: "User created successfully",
-      user,
+      success: true,
+      data: {
+        user: userResponse,
+      },
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: error.message,
     });
   }
@@ -51,6 +69,7 @@ const login = async (req, res) => {
 
     if (error) {
       return res.status(400).json({
+        success: false,
         message: error.details[0].message,
       });
     }
@@ -61,18 +80,17 @@ const login = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
-        message: "user not found",
+        success: false,
+        message: "User not found",
       });
     }
 
-    const isMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "invalid password",
+        success: false,
+        message: "Invalid email or password",
       });
     }
 
@@ -87,17 +105,36 @@ const login = async (req, res) => {
     );
 
     res.status(200).json({
-      message: "login successful",
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+      success: true,
+      data: {
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          learningPath: user.learningPath,
+          skillLevel: user.skillLevel,
+        },
       },
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getMe = async (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      data: req.user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
       message: error.message,
     });
   }
@@ -106,4 +143,5 @@ const login = async (req, res) => {
 module.exports = {
   register,
   login,
+  getMe,
 };

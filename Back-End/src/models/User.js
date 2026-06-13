@@ -5,32 +5,37 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      trim: true,
     },
-
     email: {
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
-
     password: {
       type: String,
       required: true,
     },
-
     role: {
       type: String,
+      enum: ["learner", "mentor"],
       default: "learner",
     },
-
     learningPath: {
       type: String,
-      default: "",
+      enum: ["frontend", "backend", "ai", "mobile"],
+      required: function() {
+        return this.role === "learner";
+      },
     },
-
-    level: {
+    skillLevel: {
       type: String,
-      default: "",
+      enum: ["beginner", "intermediate"],
+      required: function() {
+        return this.role === "learner";
+      },
     },
   },
   {
