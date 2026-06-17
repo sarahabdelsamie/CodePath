@@ -8,12 +8,10 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import LearnerDashboard from './pages/LearnerDashboard';
 import MentorDashboard from './pages/MentorDashboard';
-import { 
-  RoadmapListingPage, 
-  RoadmapDetailPage, 
-  StepDetailPage, 
-  ProfilePage 
-} from './pages/Placeholders';
+import RoadmapListingPage from './pages/RoadmapListingPage';
+import RoadmapDetailPage from './pages/RoadmapDetailPage';
+import StepDetailPage from './pages/StepDetailPage';
+import { ProfilePage } from './pages/Placeholders';
 
 // Route guards
 function ProtectedRoute({ children, allowedRole }) {

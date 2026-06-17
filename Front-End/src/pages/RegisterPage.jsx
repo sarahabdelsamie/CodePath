@@ -83,7 +83,7 @@ export default function RegisterPage() {
   };
 
   // Finish Setup & Register
-  const handleFinish = () => {
+  const handleFinish = async () => {
     setGeneralError('');
     
     const userData = {
@@ -94,7 +94,7 @@ export default function RegisterPage() {
       ...(role === 'Learner' ? { path, level } : {})
     };
 
-    const result = register(userData);
+    const result = await register(userData);
     if (result.success) {
       if (role === 'Mentor') {
         navigate('/mentor-dashboard');

@@ -30,64 +30,164 @@ const MOCK_USERS = [
   }
 ];
 
+const API_BASE = "http://localhost:5000/api";
+
+const mapUserToFrontend = (user) => {
+  if (!user) return null;
+  
+  let role = user.role;
+  if (role === 'learner') role = 'Learner';
+  else if (role === 'mentor') role = 'Mentor';
+
+  let path = '';
+  if (user.learningPath) {
+    if (user.learningPath === 'frontend') path = 'Frontend';
+    else if (user.learningPath === 'backend') path = 'Backend';
+    else if (user.learningPath === 'ai') path = 'AI';
+    else if (user.learningPath === 'mobile') path = 'Mobile';
+    else path = user.learningPath;
+  }
+
+  let level = '';
+  if (user.skillLevel) {
+    if (user.skillLevel === 'beginner') level = 'Beginner';
+    else if (user.skillLevel === 'intermediate') level = 'Intermediate';
+    else level = user.skillLevel;
+  }
+
+  return {
+    ...user,
+    id: user._id || user.id,
+    role,
+    path,
+    level,
+    learningPath: user.learningPath,
+    skillLevel: user.skillLevel,
+  };
+};
+
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('codepath_user');
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [users, setUsers] = useState(() => {
-    const saved = localStorage.getItem('codepath_all_users');
-    return saved ? JSON.parse(saved) : MOCK_USERS;
-  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('codepath_all_users', JSON.stringify(users));
-  }, [users]);
+    const checkUserSession = async () => {
+      const token = localStorage.getItem('codepath_token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-  const login = (email, password) => {
-    const foundUser = users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-    if (foundUser) {
-      const { password, ...userWithoutPassword } = foundUser;
-      setCurrentUser(userWithoutPassword);
-      localStorage.setItem('codepath_user', JSON.stringify(userWithoutPassword));
-      return { success: true, user: userWithoutPassword };
-    }
-    return { success: false, message: 'Invalid email or password' };
-  };
+      try {
+        const response = await fetch(`${API_BASE}/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
-  const register = (userData) => {
-    const existing = users.find((u) => u.email.toLowerCase() === userData.email.toLowerCase());
-    if (existing) {
-      return { success: false, message: 'Email already registered' };
-    }
-
-    const newUser = {
-      name: userData.name,
-      email: userData.email,
-      password: userData.password,
-      role: userData.role,
-      path: userData.path || '',
-      level: userData.level || ''
+        const resData = await response.json();
+        if (resData.success && resData.data) {
+          const mappedUser = mapUserToFrontend(resData.data);
+          setCurrentUser(mappedUser);
+          localStorage.setItem('codepath_user', JSON.stringify(mappedUser));
+        } else {
+          // Token is invalid/expired
+          localStorage.removeItem('codepath_user');
+          localStorage.removeItem('codepath_token');
+          setCurrentUser(null);
+        }
+      } catch (err) {
+        console.error("Session check failed", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setUsers((prev) => [...prev, newUser]);
-    
-    const { password, ...userWithoutPassword } = newUser;
-    setCurrentUser(userWithoutPassword);
-    localStorage.setItem('codepath_user', JSON.stringify(userWithoutPassword));
-    return { success: true, user: userWithoutPassword };
+    checkUserSession();
+  }, []);
+
+  const login = async (email, password) => {
+    try {
+      const response = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const resData = await response.json();
+      if (!response.ok || !resData.success) {
+        return { success: false, message: resData.message || 'Invalid email or password' };
+      }
+
+      const { token, user } = resData.data;
+      const mappedUser = mapUserToFrontend(user);
+      
+      localStorage.setItem('codepath_token', token);
+      localStorage.setItem('codepath_user', JSON.stringify(mappedUser));
+      setCurrentUser(mappedUser);
+
+      return { success: true, user: mappedUser };
+    } catch (err) {
+      console.error("Login request error", err);
+      return { success: false, message: 'Server is currently unreachable.' };
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const backendData = {
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
+        role: userData.role.toLowerCase(),
+        learningPath: userData.path ? userData.path.toLowerCase() : undefined,
+        skillLevel: userData.level ? userData.level.toLowerCase() : undefined,
+      };
+
+      const response = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(backendData),
+      });
+
+      const resData = await response.json();
+      if (!response.ok || !resData.success) {
+        return { success: false, message: resData.message || 'Registration failed' };
+      }
+
+      const { token, user } = resData.data;
+      const mappedUser = mapUserToFrontend(user);
+
+      if (token) {
+        localStorage.setItem('codepath_token', token);
+      }
+      localStorage.setItem('codepath_user', JSON.stringify(mappedUser));
+      setCurrentUser(mappedUser);
+
+      return { success: true, user: mappedUser };
+    } catch (err) {
+      console.error("Registration request error", err);
+      return { success: false, message: 'Server is currently unreachable.' };
+    }
   };
 
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem('codepath_user');
+    localStorage.removeItem('codepath_token');
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, register, logout }}>
+    <AuthContext.Provider value={{ currentUser, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

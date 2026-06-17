@@ -41,13 +41,13 @@ export default function LoginPage() {
   };
 
   // Handle Login
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setGeneralError('');
     
     if (!validateForm()) return;
 
-    const result = login(email, password);
+    const result = await login(email, password);
     if (result.success) {
       if (result.user.role === 'Mentor') {
         navigate('/mentor-dashboard');

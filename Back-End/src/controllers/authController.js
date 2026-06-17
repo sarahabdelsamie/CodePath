@@ -39,6 +39,16 @@ const register = async (req, res) => {
       skillLevel: role === "learner" ? skillLevel : undefined,
     });
 
+    const token = jwt.sign(
+      {
+        id: user._id,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "3d",
+      }
+    );
+
     const userResponse = {
       _id: user._id,
       name: user.name,
@@ -52,6 +62,7 @@ const register = async (req, res) => {
     res.status(201).json({
       success: true,
       data: {
+        token,
         user: userResponse,
       },
     });
