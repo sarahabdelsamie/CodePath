@@ -12,6 +12,7 @@ export default function StepDetailPage() {
 
   const [step, setStep] = useState(null);
   const [completed, setCompleted] = useState(false);
+  const [progressPercentage, setProgressPercentage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -56,6 +57,7 @@ export default function StepDetailPage() {
             (id) => id.toString() === stepId.toString()
           );
           setCompleted(stepCompleted);
+          setProgressPercentage(pData.data.progressPercentage || 0);
         }
       }
     } catch (err) {
@@ -76,7 +78,7 @@ export default function StepDetailPage() {
         return;
       }
 
-      const response = await fetch(`${API_BASE}/steps/${stepId}/complete`, {
+      const response = await fetch(`${API_BASE}/progress/${step.roadmapId}/complete/${stepId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -87,10 +89,13 @@ export default function StepDetailPage() {
       const resData = await response.json();
       if (response.ok && resData.success) {
         setCompleted(true);
+        if (resData.data) {
+          setProgressPercentage(resData.data.progressPercentage || 0);
+        }
         // After successful completion, go back to the roadmap detail page
         setTimeout(() => {
           navigate(`/roadmaps/${step.roadmapId || roadmapUrlId}`);
-        }, 800);
+        }, 1200);
       } else {
         setError(resData.message || 'Failed to update progress.');
       }
@@ -167,7 +172,12 @@ export default function StepDetailPage() {
               Lesson {step.order}
             </span>
             
-            <div className="flex items-center gap-1.5 text-xs font-bold shrink-0">
+            <div className="flex items-center gap-4 text-xs font-bold shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400 text-[11px] font-medium">Roadmap Progress:</span>
+                <span className="text-brand-primary text-xs font-extrabold">{progressPercentage}%</span>
+              </div>
+              
               {completed ? (
                 <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
                   <CheckCircle size={14} className="stroke-[2.5]" />
@@ -180,6 +190,14 @@ export default function StepDetailPage() {
                 </span>
               )}
             </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div 
+              className="bg-brand-primary h-1.5 rounded-full transition-all duration-500 ease-out" 
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
           </div>
 
           {/* Title */}
@@ -280,30 +298,32 @@ export default function StepDetailPage() {
               Back to Stepper
             </button>
 
-            {completed ? (
-              <span className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs p-2.5 bg-emerald-50 border border-emerald-100 rounded-xl">
-                <CheckCircle size={14} className="stroke-[2.5]" />
-                <span>Curriculum Completed</span>
-              </span>
-            ) : (
-              <button
-                onClick={handleMarkCompleted}
-                disabled={submitting}
-                className="bg-brand-primary hover:bg-brand-primaryHover disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md shadow-brand-primary/15 hover:shadow-lg transition-all flex items-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Saving Progress...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle size={14} />
-                    <span>Mark Completed</span>
-                  </>
-                )}
-              </button>
-            )}
+            <button
+              onClick={handleMarkCompleted}
+              disabled={completed || submitting}
+              className={`font-bold px-6 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 ${
+                completed
+                  ? 'bg-emerald-500 text-white cursor-not-allowed shadow-none'
+                  : 'bg-brand-primary hover:bg-brand-primaryHover text-white shadow-md shadow-brand-primary/15 hover:shadow-lg'
+              }`}
+            >
+              {submitting ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Saving Progress...</span>
+                </>
+              ) : completed ? (
+                <>
+                  <CheckCircle size={14} className="stroke-[2.5]" />
+                  <span>Completed ✓</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={14} />
+                  <span>Mark Completed</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </main>

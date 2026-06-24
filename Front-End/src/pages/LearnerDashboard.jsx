@@ -1,52 +1,118 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
-import { CheckCircle2, Award, MessageSquare, ChevronRight, Play, ExternalLink } from 'lucide-react';
+import { CheckCircle2, Award, ChevronRight, Play, Sparkles, BookOpen, AlertCircle } from 'lucide-react';
 
 export default function LearnerDashboard() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  
-  // Custom metadata based on user's path selection
-  const getPathDetails = (userPath) => {
-    const defaultDetails = {
-      title: 'Advanced Frontend Engineering',
-      module: 'Module 4: State Management & Architecture Patterns',
-      lesson: 'Implementing Redux Saga',
-      progress: 65,
-    };
 
-    switch (userPath) {
-      case 'Backend':
-        return {
-          title: 'Advanced Backend Engineering',
-          module: 'Module 5: Distributed Caching & Message Queues',
-          lesson: 'Configuring Redis Pub/Sub',
-          progress: 42,
-        };
-      case 'AI':
-        return {
-          title: 'Advanced AI & Data Engineering',
-          module: 'Module 3: Neural Networks & Transformers',
-          lesson: 'Fine-tuning GPT-4 with Custom Datasets',
-          progress: 28,
-        };
-      case 'Mobile':
-        return {
-          title: 'Advanced Mobile Engineering',
-          module: 'Module 4: SwiftUI State & Lifecycle Management',
-          lesson: 'Integrating Swift Combine with CoreData',
-          progress: 50,
-        };
-      case 'Frontend':
-      default:
-        return defaultDetails;
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('codepath_token');
+      if (!token) {
+        setError('No active session. Please log in.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/dashboard', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setDashboardData(data.data);
+      } else {
+        setError(data.message || 'Failed to fetch dashboard data.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Connection to server failed.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const pathDetails = getPathDetails(currentUser?.path);
+  const getCategoryLabel = (category) => {
+    switch (category) {
+      case 'frontend': return 'Frontend';
+      case 'backend': return 'Backend';
+      case 'ai': return 'AI & Data';
+      case 'mobile': return 'Mobile';
+      default: return category;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50/50">
+        <Navbar />
+        <main className="max-w-7xl mx-auto px-6 py-10 w-full flex-grow text-left">
+          <div className="mb-8 animate-pulse">
+            <div className="h-8 bg-slate-200 rounded-lg w-1/4 mb-2"></div>
+            <div className="h-4 bg-slate-200 rounded-lg w-1/6"></div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8 space-y-8">
+              <div className="bg-white border border-slate-200/50 rounded-2xl p-8 h-64 animate-pulse">
+                <div className="h-4 bg-slate-200 rounded w-1/6 mb-4"></div>
+                <div className="h-8 bg-slate-200 rounded w-1/2 mb-6"></div>
+                <div className="h-10 bg-slate-200 rounded w-1/3"></div>
+              </div>
+              <div className="bg-white border border-slate-200/50 rounded-2xl p-8 h-48 animate-pulse"></div>
+            </div>
+            <div className="lg:col-span-4 bg-white border border-slate-200/50 rounded-2xl p-8 h-96 animate-pulse"></div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50/50">
+        <Navbar />
+        <main className="max-w-3xl mx-auto px-6 py-20 w-full flex-grow text-center">
+          <div className="p-8 bg-red-50 border border-red-100 rounded-2xl flex flex-col items-center justify-center max-w-md mx-auto space-y-4">
+            <AlertCircle size={36} className="text-red-500" />
+            <h3 className="font-bold text-slate-800">Error Loading Dashboard</h3>
+            <p className="text-slate-500 text-sm leading-relaxed">{error}</p>
+            <button 
+              onClick={fetchDashboardData}
+              className="bg-brand-primary hover:bg-brand-primaryHover text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all"
+            >
+              Retry
+            </button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const { activeRoadmap, recentlyCompletedSteps, recommendedNextStep, totalCompletedStepsCount } = dashboardData || {};
+
+  // SVG ring math
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius;
+  const activeProgressPercentage = activeRoadmap ? activeRoadmap.progressPercentage : 0;
+  const strokeDashoffset = circumference - (activeProgressPercentage / 100) * circumference;
 
   const recommendedPaths = [
     {
@@ -72,35 +138,6 @@ export default function LearnerDashboard() {
     },
   ];
 
-  const activities = [
-    {
-      type: 'lesson',
-      text: 'Completed lesson Context API Deep Dive',
-      time: '2 hours ago',
-      icon: CheckCircle2,
-      iconColor: 'text-emerald-500 bg-emerald-50 border-emerald-100',
-    },
-    {
-      type: 'badge',
-      text: 'Earned badge React Hooks Master',
-      time: 'Yesterday',
-      icon: Award,
-      iconColor: 'text-brand-primary bg-indigo-50 border-indigo-100',
-    },
-    {
-      type: 'discussion',
-      text: 'Replied to discussion in Performance Optimization',
-      time: '2 days ago',
-      icon: MessageSquare,
-      iconColor: 'text-slate-500 bg-slate-50 border-slate-100',
-    },
-  ];
-
-  // SVG ring math
-  const radius = 38;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (pathDetails.progress / 100) * circumference;
-
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/50">
       <Navbar />
@@ -109,83 +146,154 @@ export default function LearnerDashboard() {
         {/* Greetings */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
-            Welcome back, {currentUser?.name ? currentUser.name.split(' ')[0] : 'Alex'}
+            Welcome back, {currentUser?.name ? currentUser.name.split(' ')[0] : 'Learner'}
           </h1>
-          <p className="text-slate-400 text-sm">Here is your learning progress for today.</p>
+          <p className="text-slate-450 text-sm">Here is your learning progress for today.</p>
         </div>
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left Column: Active Roadmap & Recommendations (8 cols) */}
+          {/* Left Column: Active Roadmap & Stats & Recommendations (8 cols) */}
           <div className="lg:col-span-8 space-y-8">
             
             {/* Active Roadmap Card */}
-            <div className="bg-white border border-slate-200/50 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
-              <div className="space-y-4 text-left flex-1">
-                <div className="flex items-center gap-1.5 text-brand-primary font-bold text-xs uppercase tracking-widest">
-                  <span>&lt;&gt;</span>
-                  <span>Active Roadmap</span>
-                </div>
-                
-                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-                  {pathDetails.title}
-                </h2>
-                
-                <p className="text-slate-400 text-sm font-medium">
-                  {pathDetails.module}
-                </p>
+            {activeRoadmap ? (
+              <div className="bg-white border border-slate-200/50 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
+                <div className="space-y-4 text-left flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-brand-primary font-bold text-xs uppercase tracking-widest">
+                    <span>&lt;&gt;</span>
+                    <span>Active Roadmap</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight truncate">
+                      {activeRoadmap.title}
+                    </h2>
+                    
+                    <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                      {getCategoryLabel(activeRoadmap.category)} Track • {activeRoadmap.difficultyLevel}
+                    </p>
+                  </div>
 
-                {/* Lesson Info Pill */}
-                <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs flex items-center justify-between gap-4">
-                  <span className="text-slate-400 font-medium">Current Lesson:</span>
-                  <span className="text-slate-800 font-semibold truncate">{pathDetails.lesson}</span>
+                  {/* Recommended Next Lesson Pill */}
+                  {recommendedNextStep ? (
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs flex items-center justify-between gap-4">
+                      <span className="text-slate-400 font-medium shrink-0">Next Lesson:</span>
+                      <span className="text-slate-800 font-semibold truncate">
+                        Lesson {recommendedNextStep.order}: {recommendedNextStep.title}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="bg-emerald-50/50 border border-emerald-100/50 rounded-xl px-4 py-3 text-xs flex items-center justify-between gap-4">
+                      <span className="text-emerald-700 font-semibold">🎉 Roadmap Completed!</span>
+                      <span className="text-slate-500 font-medium">Excellent work!</span>
+                    </div>
+                  )}
+
+                  {recommendedNextStep ? (
+                    <button 
+                      onClick={() => navigate(`/roadmaps/${activeRoadmap._id}/steps/${recommendedNextStep._id}`)}
+                      className="flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primaryHover text-white font-semibold px-6 py-2.5 rounded-xl transition-all shadow-md shadow-brand-primary/10 hover:shadow-lg hover:shadow-brand-primary/20 hover:-translate-y-0.5 active:translate-y-0 text-sm"
+                    >
+                      <Play size={14} className="fill-white" />
+                      <span>Continue Learning</span>
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => navigate(`/roadmaps/${activeRoadmap._id}`)}
+                      className="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold px-6 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0 text-sm"
+                    >
+                      <BookOpen size={14} />
+                      <span>Review Roadmap</span>
+                    </button>
+                  )}
                 </div>
 
-                <button 
-                  onClick={() => navigate('/roadmaps/' + (currentUser?.path?.toLowerCase() || 'frontend'))}
-                  className="flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primaryHover text-white font-semibold px-6 py-2.5 rounded-xl transition-all shadow-md shadow-brand-primary/10 hover:shadow-lg hover:shadow-brand-primary/20 hover:-translate-y-0.5 active:translate-y-0 text-sm"
+                {/* Progress Circle Visual */}
+                <div className="relative flex items-center justify-center shrink-0 w-36 h-36">
+                  <svg className="w-32 h-32 transform -rotate-90">
+                    <circle
+                      cx="64"
+                      cy="64"
+                      r={radius}
+                      className="stroke-slate-100"
+                      strokeWidth="8"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="64"
+                      cy="64"
+                      r={radius}
+                      className="stroke-brand-primary"
+                      strokeWidth="8"
+                      fill="transparent"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round"
+                      style={{ transition: 'stroke-dashoffset 0.8s ease-in-out' }}
+                    />
+                  </svg>
+                  <div className="absolute flex flex-col items-center justify-center">
+                    <span className="text-2xl font-bold font-display text-slate-800 leading-none">
+                      {activeProgressPercentage}%
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-1">
+                      Completed
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // Empty State
+              <div className="bg-white border border-slate-200/50 rounded-2xl p-8 sm:p-10 shadow-sm text-center space-y-6 relative overflow-hidden flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-brand-primary/5 rounded-2xl flex items-center justify-center border border-brand-primary/10">
+                  <Sparkles size={28} className="text-brand-primary" />
+                </div>
+                <div className="max-w-md space-y-2">
+                  <h3 className="text-xl font-bold text-slate-900">Start Your Learning Journey</h3>
+                  <p className="text-slate-455 text-sm leading-relaxed">
+                    You haven't started any roadmap curriculum yet. Explore our directory of tracks, enroll in one, and watch your progress accumulate here!
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate('/roadmaps')}
+                  className="bg-brand-primary hover:bg-brand-primaryHover text-white font-semibold px-6 py-2.5 rounded-xl transition-all shadow-md shadow-brand-primary/10 hover:shadow-lg hover:shadow-brand-primary/20 hover:-translate-y-0.5 active:translate-y-0 text-sm"
                 >
-                  <Play size={14} className="fill-white" />
-                  <span>Continue Learning</span>
+                  Explore Roadmaps
                 </button>
               </div>
+            )}
 
-              {/* Progress Circle Visual */}
-              <div className="relative flex items-center justify-center shrink-0 w-36 h-36">
-                <svg className="w-32 h-32 transform -rotate-90">
-                  {/* Outer circle */}
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r={radius}
-                    className="stroke-slate-100"
-                    strokeWidth="8"
-                    fill="transparent"
-                  />
-                  {/* Active progress path */}
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r={radius}
-                    className="stroke-brand-primary"
-                    strokeWidth="8"
-                    fill="transparent"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={strokeDashoffset}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-2xl font-bold font-display text-slate-800 leading-none">
-                    {pathDetails.progress}%
-                  </span>
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-1">
-                    Completed
-                  </span>
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="bg-white border border-slate-200/50 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
+                <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center text-emerald-500 shrink-0">
+                  <CheckCircle2 size={20} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 leading-tight">
+                    {totalCompletedStepsCount}
+                  </p>
+                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mt-0.5">
+                    Completed Lessons
+                  </p>
                 </div>
               </div>
 
+              <div className="bg-white border border-slate-200/50 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
+                <div className="w-12 h-12 bg-brand-primary/5 border border-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary shrink-0">
+                  <Award size={20} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 leading-tight">
+                    {activeRoadmap ? activeRoadmap.progressPercentage : 0}%
+                  </p>
+                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mt-0.5">
+                    Roadmap Progress
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Recommended Next Paths Section */}
@@ -193,10 +301,10 @@ export default function LearnerDashboard() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-display font-bold text-lg text-slate-900">Recommended Next Paths</h3>
                 <div className="flex gap-2">
-                  <button className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors text-sm font-bold">
+                  <button className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-450 hover:text-slate-650 transition-colors text-sm font-bold">
                     &lt;
                   </button>
-                  <button className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors text-sm font-bold">
+                  <button className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-450 hover:text-slate-650 transition-colors text-sm font-bold">
                     &gt;
                   </button>
                 </div>
@@ -211,7 +319,7 @@ export default function LearnerDashboard() {
                   >
                     <div>
                       <div className="flex items-center justify-between mb-3">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${item.badgeColor}`}>
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${item.badgeColor}`}>
                           {item.level}
                         </span>
                       </div>
@@ -234,7 +342,7 @@ export default function LearnerDashboard() {
           </div>
 
           {/* Right Column: Recent Activity (4 cols) */}
-          <div className="lg:col-span-4 bg-white border border-slate-200/50 rounded-2xl p-6 shadow-sm">
+          <div className="lg:col-span-4 bg-white border border-slate-200/50 rounded-2xl p-6 shadow-sm flex flex-col h-full min-h-[300px]">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
               <h3 className="font-display font-bold text-slate-900">Recent Activity</h3>
               <Link to="/roadmaps" className="text-xs font-semibold text-brand-primary hover:text-brand-primaryHover">
@@ -242,21 +350,40 @@ export default function LearnerDashboard() {
               </Link>
             </div>
 
-            <div className="space-y-5">
-              {activities.map((act, idx) => {
-                const Icon = act.icon;
-                return (
+            <div className="space-y-5 flex-grow">
+              {recentlyCompletedSteps && recentlyCompletedSteps.length > 0 ? (
+                recentlyCompletedSteps.map((act, idx) => (
                   <div key={idx} className="flex gap-3 text-left">
-                    <div className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center border ${act.iconColor}`}>
-                      <Icon size={14} />
+                    <div className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center border text-emerald-500 bg-emerald-50 border-emerald-100">
+                      <CheckCircle2 size={14} />
                     </div>
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-medium text-slate-800 leading-normal">{act.text}</p>
-                      <p className="text-[10px] text-slate-400 font-semibold">{act.time}</p>
+                    <div className="space-y-0.5 min-w-0">
+                      <p className="text-xs font-semibold text-slate-800 leading-normal truncate">
+                        Completed: {act.title}
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-medium truncate">
+                        in {act.roadmapTitle}
+                      </p>
+                      <p className="text-[9px] text-slate-400 font-semibold">
+                        {new Date(act.completedAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
                     </div>
                   </div>
-                );
-              })}
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center py-10 space-y-2 text-slate-400">
+                  <CheckCircle2 size={24} className="stroke-slate-300" />
+                  <p className="text-xs font-semibold">No activity recorded</p>
+                  <p className="text-[10px] text-slate-400 max-w-[200px]">
+                    Your completed lessons will appear here.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

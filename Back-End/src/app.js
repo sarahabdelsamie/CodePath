@@ -6,6 +6,7 @@ const stepRoutes = require("./routes/stepRoutes");
 const progressRoutes = require("./routes/progressRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const mentorRoutes = require("./routes/mentorRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/roadmaps", roadmapRoutes);
 app.use("/api/steps", stepRoutes);
 app.use("/api/progress", progressRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/mentor", mentorRoutes);
 
