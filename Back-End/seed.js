@@ -6,6 +6,8 @@ const User = require("./src/models/User");
 const Roadmap = require("./src/models/Roadmap");
 const LearningStep = require("./src/models/LearningStep");
 const Progress = require("./src/models/Progress");
+const Report = require("./src/models/Report");
+const SystemSetting = require("./src/models/SystemSetting");
 
 const seedData = async () => {
   try {
@@ -20,6 +22,8 @@ const seedData = async () => {
     await Roadmap.deleteMany({});
     await LearningStep.deleteMany({});
     await Progress.deleteMany({});
+    await Report.deleteMany({});
+    await SystemSetting.deleteMany({});
     console.log("Collections cleared.");
 
     // 3. Seed Users
@@ -42,7 +46,14 @@ const seedData = async () => {
       role: "mentor",
     });
 
-    console.log(`Seeded users: \n- Learner: ${learner.email}\n- Mentor: ${mentor.email}`);
+    const admin = await User.create({
+      name: "CodePath Administrator",
+      email: "admin@codepath.com",
+      password: hashedPassword,
+      role: "admin",
+    });
+
+    console.log(`Seeded users: \n- Learner: ${learner.email}\n- Mentor: ${mentor.email}\n- Admin: ${admin.email}`);
 
     // 4. Seed Roadmaps and Steps
     console.log("Seeding roadmaps and learning steps...");
@@ -207,7 +218,50 @@ const seedData = async () => {
     mobileRoadmap.steps.push(mobStep1._id, mobStep2._id, mobStep3._id);
     await mobileRoadmap.save();
 
-    console.log("Database seeded successfully with all categories!");
+    // 5. Seed Initial Progress for Learner
+    console.log("Seeding learner initial progress...");
+    await Progress.create({
+      userId: learner._id,
+      roadmapId: frontendRoadmap._id,
+      completedSteps: [feStep1._id],
+      progressPercentage: 33,
+    });
+
+    // 6. Seed Sample Reports
+    console.log("Seeding moderation reports...");
+    await Report.create({
+      reporterName: "Alex Johnson",
+      reporterEmail: "learner@codepath.com",
+      targetType: "step",
+      targetTitle: "HTML & CSS Fundamentals - Broken External Link",
+      reason: "One of the recommended CSS-Tricks links returned 404.",
+      status: "pending",
+      resolutionNotes: "",
+    });
+
+    await Report.create({
+      reporterName: "Sarah Jenkins",
+      reporterEmail: "mentor@codepath.com",
+      targetType: "roadmap",
+      targetTitle: "AI & ML Roadmap - Prerequisites Suggestion",
+      reason: "Consider recommending Python NumPy fundamentals before linear algebra.",
+      status: "resolved",
+      resolutionNotes: "Curriculum updated accordingly.",
+    });
+
+    // 7. Seed System Settings
+    console.log("Seeding platform settings...");
+    await SystemSetting.create({
+      platformName: "CodePath Career Accelerator",
+      allowUserRegistration: true,
+      maintenanceMode: false,
+      defaultLearningPath: "frontend",
+      supportEmail: "support@codepath.com",
+      maxMenteesPerMentor: 15,
+      announcementBanner: "Welcome to CodePath 2.0! Explore verified tech career roadmaps.",
+    });
+
+    console.log("Database seeded successfully with all categories, demo users, reports, and settings!");
     process.exit(0);
   } catch (error) {
     console.error("Error during seeding: ", error);

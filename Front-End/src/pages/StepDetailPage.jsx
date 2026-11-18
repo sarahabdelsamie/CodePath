@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ArrowLeft, BookOpen, CheckCircle, Clock, ExternalLink, ShieldCheck, AlertCircle } from 'lucide-react';
-
-const API_BASE = "http://localhost:5000/api";
+import { API_BASE } from '../config/api';
 
 export default function StepDetailPage() {
   const { id: roadmapUrlId, stepId } = useParams();
@@ -31,7 +30,7 @@ export default function StepDetailPage() {
       // 1. Fetch Step Details
       const response = await fetch(`${API_BASE}/steps/${stepId}`);
       const sData = await response.json();
-      
+
       if (!sData.success || !sData.data) {
         setError(sData.message || 'Learning step not found.');
         setLoading(false);
@@ -136,7 +135,7 @@ export default function StepDetailPage() {
             <AlertCircle size={36} className="text-red-500" />
             <h3 className="font-bold text-slate-800">Error Loading Lesson</h3>
             <p className="text-slate-500 text-sm leading-relaxed">{error}</p>
-            <button 
+            <button
               onClick={() => navigate(-1)}
               className="bg-brand-primary hover:bg-brand-primaryHover text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all"
             >
@@ -159,25 +158,25 @@ export default function StepDetailPage() {
           onClick={() => navigate(`/roadmaps/${step?.roadmapId || roadmapUrlId}`)}
           className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-600 mb-6 transition-colors"
         >
-          <ArrowLeft size={14} /> 
+          <ArrowLeft size={14} />
           <span>Back to Roadmap Details</span>
         </button>
 
         {/* Step Core Module */}
         <div className="bg-white border border-slate-200/50 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
-          
+
           {/* Header row */}
           <div className="flex items-center justify-between flex-wrap gap-3">
             <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-primary/10 text-brand-primary px-3.5 py-1.5 rounded-full border border-brand-primary/15 shrink-0">
               Lesson {step.order}
             </span>
-            
+
             <div className="flex items-center gap-4 text-xs font-bold shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-slate-400 text-[11px] font-medium">Roadmap Progress:</span>
                 <span className="text-brand-primary text-xs font-extrabold">{progressPercentage}%</span>
               </div>
-              
+
               {completed ? (
                 <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
                   <CheckCircle size={14} className="stroke-[2.5]" />
@@ -194,8 +193,8 @@ export default function StepDetailPage() {
 
           {/* Progress Bar */}
           <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div 
-              className="bg-brand-primary h-1.5 rounded-full transition-all duration-500 ease-out" 
+            <div
+              className="bg-brand-primary h-1.5 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
@@ -225,7 +224,7 @@ export default function StepDetailPage() {
                   if (!link.startsWith('http://') && !link.startsWith('https://')) {
                     href = `https://${link}`;
                   }
-                  
+
                   // Clean label
                   let label = link.replace('https://', '').replace('http://', '').replace('www.', '');
                   if (label.length > 30) label = label.slice(0, 27) + '...';
@@ -260,16 +259,15 @@ export default function StepDetailPage() {
                   <div
                     key={idx}
                     onClick={() => toggleExercise(idx)}
-                    className={`flex items-start gap-3 p-3.5 border rounded-xl cursor-pointer select-none transition-all ${
-                      checkedExercises[idx] 
-                        ? 'bg-slate-50/50 border-slate-200 opacity-70' 
+                    className={`flex items-start gap-3 p-3.5 border rounded-xl cursor-pointer select-none transition-all ${checkedExercises[idx]
+                        ? 'bg-slate-50/50 border-slate-200 opacity-70'
                         : 'bg-white border-slate-150 hover:border-slate-200'
-                    }`}
+                      }`}
                   >
                     <input
                       type="checkbox"
                       checked={!!checkedExercises[idx]}
-                      onChange={() => {}} // toggling handled by div click
+                      onChange={() => { }} // toggling handled by div click
                       className="w-4.5 h-4.5 text-brand-primary border-slate-300 rounded focus:ring-brand-primary/20 accent-brand-primary cursor-pointer mt-0.5 shrink-0"
                     />
                     <span className={`text-xs text-left leading-normal font-semibold ${checkedExercises[idx] ? 'line-through text-slate-400' : 'text-slate-650'}`}>
@@ -301,11 +299,10 @@ export default function StepDetailPage() {
             <button
               onClick={handleMarkCompleted}
               disabled={completed || submitting}
-              className={`font-bold px-6 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 ${
-                completed
+              className={`font-bold px-6 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 ${completed
                   ? 'bg-emerald-500 text-white cursor-not-allowed shadow-none'
                   : 'bg-brand-primary hover:bg-brand-primaryHover text-white shadow-md shadow-brand-primary/15 hover:shadow-lg'
-              }`}
+                }`}
             >
               {submitting ? (
                 <>

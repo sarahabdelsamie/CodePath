@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["learner", "mentor"],
+      enum: ["learner", "mentor", "admin"],
       default: "learner",
     },
     learningPath: {
@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
     },
     skillLevel: {
       type: String,
-      enum: ["beginner", "intermediate"],
+      enum: ["beginner", "intermediate", "advanced"],
       required: function() {
         return this.role === "learner";
       },

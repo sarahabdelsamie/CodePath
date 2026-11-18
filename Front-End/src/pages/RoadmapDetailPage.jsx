@@ -3,8 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ArrowLeft, BookOpen, Clock, CheckCircle, Play, Sparkles, HelpCircle, Layers } from 'lucide-react';
-
-const API_BASE = "http://localhost:5000/api";
+import { API_BASE } from '../config/api';
 
 export default function RoadmapDetailPage() {
   const { id } = useParams();

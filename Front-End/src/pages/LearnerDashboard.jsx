@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import { CheckCircle2, Award, ChevronRight, Play, Sparkles, BookOpen, AlertCircle } from 'lucide-react';
+import { API_BASE } from '../config/api';
 
 export default function LearnerDashboard() {
   const { currentUser } = useAuth();
@@ -28,7 +29,7 @@ export default function LearnerDashboard() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/dashboard', {
+      const response = await fetch(`${API_BASE}/dashboard`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -93,7 +94,7 @@ export default function LearnerDashboard() {
             <AlertCircle size={36} className="text-red-500" />
             <h3 className="font-bold text-slate-800">Error Loading Dashboard</h3>
             <p className="text-slate-500 text-sm leading-relaxed">{error}</p>
-            <button 
+            <button
               onClick={fetchDashboardData}
               className="bg-brand-primary hover:bg-brand-primaryHover text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all"
             >
@@ -153,10 +154,10 @@ export default function LearnerDashboard() {
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Left Column: Active Roadmap & Stats & Recommendations (8 cols) */}
           <div className="lg:col-span-8 space-y-8">
-            
+
             {/* Active Roadmap Card */}
             {activeRoadmap ? (
               <div className="bg-white border border-slate-200/50 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
@@ -165,12 +166,12 @@ export default function LearnerDashboard() {
                     <span>&lt;&gt;</span>
                     <span>Active Roadmap</span>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <h2 className="text-2xl font-bold text-slate-900 tracking-tight truncate">
                       {activeRoadmap.title}
                     </h2>
-                    
+
                     <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
                       {getCategoryLabel(activeRoadmap.category)} Track • {activeRoadmap.difficultyLevel}
                     </p>
@@ -192,7 +193,7 @@ export default function LearnerDashboard() {
                   )}
 
                   {recommendedNextStep ? (
-                    <button 
+                    <button
                       onClick={() => navigate(`/roadmaps/${activeRoadmap._id}/steps/${recommendedNextStep._id}`)}
                       className="flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primaryHover text-white font-semibold px-6 py-2.5 rounded-xl transition-all shadow-md shadow-brand-primary/10 hover:shadow-lg hover:shadow-brand-primary/20 hover:-translate-y-0.5 active:translate-y-0 text-sm"
                     >
@@ -200,7 +201,7 @@ export default function LearnerDashboard() {
                       <span>Continue Learning</span>
                     </button>
                   ) : (
-                    <button 
+                    <button
                       onClick={() => navigate(`/roadmaps/${activeRoadmap._id}`)}
                       className="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold px-6 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0 text-sm"
                     >
@@ -313,8 +314,8 @@ export default function LearnerDashboard() {
               {/* Recommendations grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {recommendedPaths.map((item, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="bg-white border border-slate-200/50 rounded-2xl p-5 text-left flex flex-col justify-between hover:shadow-md hover:border-slate-300 transition-all"
                   >
                     <div>

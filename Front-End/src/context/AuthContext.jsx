@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE } from '../config/api';
 
 const AuthContext = createContext(null);
 
@@ -27,17 +28,25 @@ const MOCK_USERS = [
     role: 'Mentor',
     path: '',
     level: ''
+  },
+  {
+    name: 'CodePath Administrator',
+    email: 'admin@codepath.com',
+    password: 'password123',
+    role: 'Admin',
+    path: '',
+    level: ''
   }
 ];
 
-const API_BASE = "http://localhost:5000/api";
 
 const mapUserToFrontend = (user) => {
   if (!user) return null;
-  
+
   let role = user.role;
   if (role === 'learner') role = 'Learner';
   else if (role === 'mentor') role = 'Mentor';
+  else if (role === 'admin') role = 'Admin';
 
   let path = '';
   if (user.learningPath) {
@@ -128,7 +137,7 @@ export const AuthProvider = ({ children }) => {
 
       const { token, user } = resData.data;
       const mappedUser = mapUserToFrontend(user);
-      
+
       localStorage.setItem('codepath_token', token);
       localStorage.setItem('codepath_user', JSON.stringify(mappedUser));
       setCurrentUser(mappedUser);

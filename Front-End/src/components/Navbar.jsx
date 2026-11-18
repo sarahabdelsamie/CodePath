@@ -29,6 +29,13 @@ export default function Navbar() {
     return location.pathname === path;
   };
 
+  const getDashboardPath = () => {
+    if (!currentUser) return '/login';
+    if (currentUser.role === 'Admin') return '/admin';
+    if (currentUser.role === 'Mentor') return '/mentor-dashboard';
+    return '/dashboard';
+  };
+
   return (
     <nav className="bg-white border-b border-slate-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -44,36 +51,47 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6">
             <Link
               to="/"
-              className={`text-sm font-medium transition-colors ${
-                isActive('/') ? 'text-brand-primary' : 'text-slate-500 hover:text-slate-900'
-              }`}
+              className={`text-sm font-medium transition-colors ${isActive('/') ? 'text-brand-primary font-bold' : 'text-slate-500 hover:text-slate-900'
+                }`}
             >
               Explore
             </Link>
             <Link
-              to={currentUser ? (currentUser.role === 'Mentor' ? '/mentor-dashboard' : '/dashboard') : '/login'}
-              className={`text-sm font-medium transition-colors ${
-                isActive('/dashboard') || isActive('/mentor-dashboard')
-                  ? 'text-brand-primary'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
+              to="/roadmaps"
+              className={`text-sm font-medium transition-colors ${isActive('/roadmaps') ? 'text-brand-primary font-bold' : 'text-slate-500 hover:text-slate-900'
+                }`}
             >
-              Dashboard
+              Roadmaps
             </Link>
-            <Link
-              to="#"
-              className="text-sm font-medium text-slate-400 cursor-not-allowed hover:text-slate-400"
-              onClick={(e) => e.preventDefault()}
-            >
-              My Paths
-            </Link>
-            <Link
-              to="#"
-              className="text-sm font-medium text-slate-400 cursor-not-allowed hover:text-slate-400"
-              onClick={(e) => e.preventDefault()}
-            >
-              Community
-            </Link>
+            {currentUser && (
+              <Link
+                to={getDashboardPath()}
+                className={`text-sm font-medium transition-colors ${isActive(getDashboardPath())
+                    ? 'text-brand-primary font-bold'
+                    : 'text-slate-500 hover:text-slate-900'
+                  }`}
+              >
+                {currentUser.role === 'Admin' ? 'Admin Portal' : 'Dashboard'}
+              </Link>
+            )}
+            {currentUser && (
+              <Link
+                to="/profile"
+                className={`text-sm font-medium transition-colors ${isActive('/profile') ? 'text-brand-primary font-bold' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+              >
+                Profile
+              </Link>
+            )}
+            {currentUser && (
+              <Link
+                to="/settings"
+                className={`text-sm font-medium transition-colors ${isActive('/settings') ? 'text-brand-primary font-bold' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+              >
+                Settings
+              </Link>
+            )}
           </div>
         </div>
 
@@ -81,18 +99,14 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           {currentUser ? (
             <div className="flex items-center gap-4">
-              {/* Notifications */}
-              <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all relative">
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-brand-accent rounded-full"></span>
-              </button>
-
               {/* User Avatar */}
-              <div 
+              <div
                 className="flex items-center gap-2 bg-slate-50 border border-slate-100 pl-2 pr-3 py-1 rounded-full cursor-pointer hover:bg-slate-100 transition-all"
-                onClick={() => navigate(currentUser.role === 'Mentor' ? '/mentor-dashboard' : '/dashboard')}
+                onClick={() => navigate('/profile')}
+                title="View Profile"
               >
-                <div className="w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center text-xs font-semibold font-display shadow-sm">
+                <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-semibold font-display shadow-sm ${currentUser.role === 'Admin' ? 'bg-red-500' : currentUser.role === 'Mentor' ? 'bg-purple-600' : 'bg-brand-primary'
+                  }`}>
                   {getInitials(currentUser.name)}
                 </div>
                 <div className="text-left hidden sm:block">

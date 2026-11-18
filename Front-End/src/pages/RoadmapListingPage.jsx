@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { BookOpen, Search, Filter, AlertCircle, Layers } from 'lucide-react';
-
-const API_BASE = "http://localhost:5000/api";
+import { API_BASE } from '../config/api';
 
 export default function RoadmapListingPage() {
   const navigate = useNavigate();
