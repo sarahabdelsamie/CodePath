@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config/api';
 import { 
   Users, Layers, BookOpen, AlertTriangle, Settings, ShieldCheck, 
   Trash2, Edit, Plus, CheckCircle, Search, Filter, RefreshCw, AlertCircle, 
   Save, Eye, ArrowUpRight
 } from 'lucide-react';
-
-const API_BASE = "http://localhost:5000/api";
 
 export default function AdminDashboard() {
   const { currentUser } = useAuth();

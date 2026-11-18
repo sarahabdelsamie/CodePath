@@ -3,12 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config/api';
 import { 
   User, Mail, Compass, Award, CheckCircle2, Clock, Edit2, 
   Save, X, Shield, ArrowRight, BookOpen, AlertCircle, Check
 } from 'lucide-react';
-
-const API_BASE = "http://localhost:5000/api";
 
 export default function ProfilePage() {
   const { currentUser } = useAuth();

@@ -3,12 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config/api';
 import { 
   Lock, Shield, Bell, BookOpen, AlertCircle, Check, 
   Eye, EyeOff, Save, KeyRound, Sparkles, Sliders
 } from 'lucide-react';
-
-const API_BASE = "http://localhost:5000/api";
 
 export default function SettingsPage() {
   const { currentUser, logout } = useAuth();

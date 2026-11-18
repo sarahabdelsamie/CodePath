@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const roadmapRoutes = require("./routes/roadmapRoutes");
 const stepRoutes = require("./routes/stepRoutes");
@@ -18,6 +19,16 @@ app.use(express.json());
 // Healthcheck
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// Ensure database connection
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error("DB connection error in middleware:", err.message);
+  }
+  next();
 });
 
 // Routes

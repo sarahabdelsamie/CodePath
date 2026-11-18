@@ -1,13 +1,27 @@
 const mongoose = require("mongoose");
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
+let isConnecting = false;
 
+const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    return mongoose.connection;
+  }
+
+  if (isConnecting) {
+    return;
+  }
+
+  try {
+    isConnecting = true;
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB Connected");
   } catch (error) {
-    console.log(error.message);
-    process.exit(1);
+    console.error("MongoDB Connection Error:", error.message);
+    if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+      process.exit(1);
+    }
+  } finally {
+    isConnecting = false;
   }
 };
 
