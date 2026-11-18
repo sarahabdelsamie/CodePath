@@ -1,34 +1,33 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "Back-End/server.js",
-      "use": "@vercel/node"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "backend": {
+      "root": "Back-End/",
+      "entrypoint": "server.js"
     },
-    {
-      "src": "Front-End/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+    "frontend": {
+      "root": "Front-End/",
+      "framework": "vite"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api(.*)",
-      "dest": "/Back-End/server.js"
+      "source": "/api",
+      "destination": {
+        "service": "backend"
+      }
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/Front-End/assets/$1"
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
     },
     {
-      "src": "/((?!api/).*\\.[^/]+)$",
-      "dest": "/Front-End/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/Front-End/index.html"
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
     }
   ]
 }
