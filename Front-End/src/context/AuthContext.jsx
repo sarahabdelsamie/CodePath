@@ -61,6 +61,7 @@ const mapUserToFrontend = (user) => {
   if (user.skillLevel) {
     if (user.skillLevel === 'beginner') level = 'Beginner';
     else if (user.skillLevel === 'intermediate') level = 'Intermediate';
+    else if (user.skillLevel === 'advanced') level = 'Advanced';
     else level = user.skillLevel;
   }
 

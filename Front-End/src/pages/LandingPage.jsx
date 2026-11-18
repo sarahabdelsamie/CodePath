@@ -140,7 +140,7 @@ export default function LandingPage() {
             return (
               <div
                 key={path.id}
-                onClick={() => navigate('/register')}
+                onClick={() => navigate(`/roadmaps/${path.id}`)}
                 className="group cursor-pointer bg-white border border-slate-200/60 rounded-2xl p-6 text-left shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between hover:-translate-y-1"
               >
                 <div>
